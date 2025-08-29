@@ -4,6 +4,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom input styles for better text visibility */
+input, textarea, select {
+  color: #1f2937 !important; /* text-gray-800 */
+}
+
+input::placeholder, textarea::placeholder {
+  color: #6b7280 !important; /* text-gray-500 */
+}
+
+/* Ensure form inputs have proper contrast */
+.form-input, .form-textarea, .form-select {
+  color: #1f2937 !important;
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+}
+
+.form-input:focus, .form-textarea:focus, .form-select:focus {
+  color: #1f2937 !important;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;

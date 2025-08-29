@@ -29,11 +29,13 @@ const navigationSections = {
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard }
   ],
   management: [
-    { name: 'Issues', href: '/dashboard/issues', icon: AlertTriangle, badge: '12' },
+    { name: 'Issues', href: '/issues', icon: AlertTriangle, badge: '12' },
     { name: 'Users', href: '/dashboard/users', icon: Users, role: 'super_admin' },
     { name: 'Areas', href: '/dashboard/areas', icon: MapPin },
     { name: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
-    { name: 'Analytics', href: '/dashboard/analytics', icon: FileText, role: 'auditor' }
+    { name: 'Analytics', href: '/analytics', icon: BarChart3, role: 'super_admin' },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3, role: 'city_engineer' },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3, role: 'auditor' }
   ],
   settings: [
     { name: 'Settings', href: '/dashboard/settings', icon: Settings }
@@ -97,7 +99,7 @@ export const Sidebar: React.FC<{ className?: string }> = ({ className = '' }) =>
                 const active = isActive(item.href);
                 
                 return (
-                  <li key={item.name}>
+                  <li key={`${item.name}-${item.role || 'default'}`}>
                     <Link
                       href={item.href}
                       className={`group flex items-center transition-all duration-200 hover:scale-105 ${
@@ -140,7 +142,7 @@ export const Sidebar: React.FC<{ className?: string }> = ({ className = '' }) =>
                 const active = isActive(item.href);
                 
                 return (
-                  <li key={item.name}>
+                  <li key={`${item.name}-${item.role || 'default'}`}>
                     <Link
                       href={item.href}
                       className={`group flex items-center transition-all duration-200 hover:scale-105 ${
@@ -183,7 +185,7 @@ export const Sidebar: React.FC<{ className?: string }> = ({ className = '' }) =>
                 const active = isActive(item.href);
                 
                 return (
-                  <li key={item.name}>
+                  <li key={`${item.name}-${item.role || 'default'}`}>
                     <Link
                       href={item.href}
                       className={`group flex items-center transition-all duration-200 hover:scale-105 ${

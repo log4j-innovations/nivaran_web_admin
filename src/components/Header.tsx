@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/lib/authContext';
 import { useRouter } from 'next/navigation';
-import { Menu, LogOut, Bell, ChevronDown } from 'lucide-react';
+import { Menu, LogOut, ChevronDown } from 'lucide-react';
+import NotificationBell from './NotificationBell';
 import { LoadingSpinner } from './LoadingSpinner';
 
 interface HeaderProps {
@@ -61,12 +62,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         {/* Right side - Actions and Profile */}
         <div className="flex items-center space-x-3">
           {/* Notifications */}
-          <button className="relative p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105">
-            <Bell className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-              <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
-            </span>
-          </button>
+          <NotificationBell />
 
           {/* Role Dropdown */}
           <div className="relative">

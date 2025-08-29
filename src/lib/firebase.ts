@@ -67,6 +67,11 @@ export const firestoreService = {
     return userDoc.exists() ? { id: userDoc.id, ...userDoc.data() } : null;
   },
   
+  getUsers: async () => {
+    const snapshot = await getDocs(collection(db, 'users'));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  },
+  
   updateUser: async (userId: string, userData: Partial<User>) => {
     await updateDoc(doc(db, 'users', userId), {
       ...userData,
@@ -76,12 +81,41 @@ export const firestoreService = {
   
   // Issue operations
   createIssue: async (issueData: Record<string, unknown>) => {
-    const docRef = await addDoc(collection(db, 'issues'), {
-      ...issueData,
-      createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
-    });
-    return docRef.id;
+    try {
+      // Filter out undefined values and File objects
+      const cleanIssueData = Object.fromEntries(
+        Object.entries(issueData).filter(([_, value]) => {
+          if (value === undefined) return false;
+          if (value instanceof File) return false;
+          if (Array.isArray(value) && value.some(item => item instanceof File)) return false;
+          return true;
+        })
+      );
+
+      // Debug: Log the cleaned data
+      console.log('Firebase service - Cleaned issue data:', JSON.stringify(cleanIssueData, null, 2));
+
+      const docRef = await addDoc(collection(db, 'issues'), {
+        ...cleanIssueData,
+        createdAt: Timestamp.now(),
+        updatedAt: Timestamp.now(),
+        status: issueData.status || 'pending',
+        assignedTo: issueData.assignedTo || null,
+        resolvedAt: null,
+        actualCost: null,
+        comments: [],
+        // Ensure these fields are always present with valid values
+        slaDeadline: issueData.slaDeadline || null,
+        slaTargetHours: issueData.slaTargetHours || 24,
+        slaEscalationHours: issueData.slaEscalationHours || 48,
+        // Ensure estimatedCost is either a number or null, never undefined
+        estimatedCost: issueData.estimatedCost !== undefined ? issueData.estimatedCost : null
+      });
+      return docRef.id;
+    } catch (error) {
+      console.error('Error creating issue:', error);
+      throw error;
+    }
   },
   
   getIssues: async (filters?: Record<string, string>) => {
@@ -100,7 +134,26 @@ export const firestoreService = {
     q = query(q, orderBy('createdAt', 'desc'));
     
     const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Array<{ id: string; [key: string]: unknown }>;
+  },
+
+  getIssueById: async (issueId: string) => {
+    try {
+      const docRef = doc(db, 'issues', issueId);
+      const docSnap = await getDoc(docRef);
+      
+      if (docSnap.exists()) {
+        return {
+          id: docSnap.id,
+          ...docSnap.data()
+        };
+      } else {
+        return null;
+      }
+    } catch (error) {
+      console.error('Error getting issue by ID:', error);
+      throw error;
+    }
   },
   
   updateIssue: async (issueId: string, issueData: Record<string, unknown>) => {
