@@ -1,10 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/lib/authContext';
 import { useToast } from '@/lib/toastContext';
-import NotificationService, { Notification } from '@/lib/notifications';
-import { Bell, Check, AlertTriangle, Info, X, Clock } from 'lucide-react';
+import { Bell, X, Check, AlertTriangle, Info, Clock } from 'lucide-react';
+import NotificationService from '@/lib/notifications';
+import type { Notification } from '@/lib/notifications';
 
 interface NotificationBellProps {
   className?: string;
@@ -14,54 +15,44 @@ export default function NotificationBell({ className = '' }: NotificationBellPro
   const { user } = useAuth();
   const toast = useToast();
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!user?.id || !user?.role) return;
+    if (!user?.id) return;
 
     // Subscribe to real-time notifications
-    const unsubscribe = NotificationService.subscribeToNotifications(
+    const unsubscribe = NotificationService.getInstance().subscribeToNotifications(
       user.id,
-      user.role,
       (newNotifications) => {
         setNotifications(newNotifications);
         setUnreadCount(newNotifications.filter(n => !n.isRead).length);
       }
     );
 
-    // Initial load
-    const loadNotifications = async () => {
-      try {
-        setLoading(true);
-        const userNotifications = await NotificationService.getUserNotifications(user.id, user.role, 20);
-        setNotifications(userNotifications);
-        setUnreadCount(userNotifications.filter(n => !n.isRead).length);
-      } catch (error) {
-        console.error('Error loading notifications:', error);
-      } finally {
-        setLoading(false);
+    return () => {
+      unsubscribe();
+    };
+  }, [user?.id]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
       }
     };
 
-    loadNotifications();
-
-    return unsubscribe;
-  }, [user?.id, user?.role]);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
-      await NotificationService.markAsRead(notificationId);
-      // Update local state
-      setNotifications(prev => 
-        prev.map(n => 
-          n.id === notificationId ? { ...n, isRead: true } : n
-        )
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      await NotificationService.getInstance().markAsRead(notificationId);
+      toast.success('Notification marked as read');
     } catch (error) {
-      console.error('Error marking notification as read:', error);
       toast.error('Error', 'Failed to mark notification as read');
     }
   };
@@ -70,51 +61,62 @@ export default function NotificationBell({ className = '' }: NotificationBellPro
     if (!user?.id) return;
     
     try {
-      await NotificationService.markAllAsRead(user.id);
-      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-      setUnreadCount(0);
-      toast.success('Success', 'All notifications marked as read');
+      setLoading(true);
+      await NotificationService.getInstance().markAllAsRead(user.id);
+      toast.success('All notifications marked as read');
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
       toast.error('Error', 'Failed to mark all notifications as read');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getNotificationIcon = (type: string, severity: string) => {
-    if (severity === 'critical') return <AlertTriangle className="w-4 h-4 text-red-500" />;
-    if (severity === 'high') return <AlertTriangle className="w-4 h-4 text-orange-500" />;
-    if (severity === 'medium') return <Info className="w-4 h-4 text-blue-500" />;
-    return <Info className="w-4 h-4 text-gray-500" />;
+  const getSeverityIcon = (severity: string) => {
+    switch (severity) {
+      case 'critical':
+        return <AlertTriangle className="w-4 h-4 text-red-600" />;
+      case 'high':
+        return <AlertTriangle className="w-4 h-4 text-orange-600" />;
+      case 'medium':
+        return <Info className="w-4 h-4 text-blue-600" />;
+      case 'low':
+        return <Clock className="w-4 h-4 text-gray-600" />;
+      default:
+        return <Info className="w-4 h-4 text-gray-600" />;
+    }
   };
 
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'critical': return 'border-l-red-500 bg-red-50';
-      case 'high': return 'border-l-orange-500 bg-orange-50';
-      case 'medium': return 'border-l-blue-500 bg-blue-50';
-      default: return 'border-l-gray-500 bg-gray-50';
+      case 'critical':
+        return 'border-l-red-500 bg-red-50';
+      case 'high':
+        return 'border-l-orange-500 bg-orange-50';
+      case 'medium':
+        return 'border-l-blue-500 bg-blue-50';
+      case 'low':
+        return 'border-l-gray-500 bg-gray-50';
+      default:
+        return 'border-l-gray-500 bg-gray-50';
     }
   };
 
-  const formatTime = (timestamp: any) => {
+  const formatTimeAgo = (timestamp: any) => {
     if (!timestamp) return 'Just now';
     
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
     const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
-
-    if (diffDays > 0) return `${diffDays}d ago`;
-    if (diffHours > 0) return `${diffHours}h ago`;
-    return 'Just now';
+    const notificationTime = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const diffInMinutes = Math.floor((now.getTime() - notificationTime.getTime()) / (1000 * 60));
+    
+    if (diffInMinutes < 1) return 'Just now';
+    if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
+    if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
+    return `${Math.floor(diffInMinutes / 1440)}d ago`;
   };
 
-  if (!user) return null;
-
   return (
-    <div className={`relative ${className}`}>
-      {/* Notification Bell */}
+    <div className={`relative ${className}`} ref={dropdownRef}>
+      {/* Notification Bell Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
@@ -128,19 +130,20 @@ export default function NotificationBell({ className = '' }: NotificationBellPro
         )}
       </button>
 
-      {/* Notifications Dropdown */}
+      {/* Notification Dropdown */}
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-200 z-50 max-h-96 overflow-hidden">
+        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50 max-h-96 overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 bg-gray-50">
+          <div className="flex items-center justify-between p-4 border-b border-gray-200">
             <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
             <div className="flex items-center space-x-2">
               {unreadCount > 0 && (
                 <button
                   onClick={handleMarkAllAsRead}
-                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                  disabled={loading}
+                  className="text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
                 >
-                  Mark all read
+                  {loading ? 'Marking...' : 'Mark all read'}
                 </button>
               )}
               <button
@@ -152,47 +155,41 @@ export default function NotificationBell({ className = '' }: NotificationBellPro
             </div>
           </div>
 
-          {/* Notifications List */}
+          {/* Notification List */}
           <div className="max-h-80 overflow-y-auto">
-            {loading ? (
-              <div className="p-4 text-center text-gray-500">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                Loading notifications...
-              </div>
-            ) : notifications.length === 0 ? (
+            {notifications.length === 0 ? (
               <div className="p-6 text-center text-gray-500">
-                <Bell className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p>No notifications yet</p>
-                <p className="text-sm">You&apos;ll see updates here when they arrive</p>
+                <Bell className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                <p>No notifications</p>
               </div>
             ) : (
-              <div className="divide-y divide-gray-200">
+              <div className="divide-y divide-gray-100">
                 {notifications.map((notification) => (
                   <div
                     key={notification.id}
-                    className={`p-4 border-l-4 ${getSeverityColor(notification.severity)} hover:bg-gray-50 transition-colors ${
-                      !notification.isRead ? 'bg-white' : ''
+                    className={`p-4 hover:bg-gray-50 transition-colors border-l-4 ${getSeverityColor(notification.severity)} ${
+                      !notification.isRead ? 'bg-blue-50' : ''
                     }`}
                   >
                     <div className="flex items-start space-x-3">
                       <div className="flex-shrink-0 mt-0.5">
-                        {getNotificationIcon(notification.type, notification.severity)}
+                        {getSeverityIcon(notification.severity)}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className={`text-sm font-medium ${
-                            !notification.isRead ? 'text-gray-900' : 'text-gray-600'
+                            !notification.isRead ? 'text-gray-900' : 'text-gray-700'
                           }`}>
                             {notification.title}
                           </p>
                           <div className="flex items-center space-x-2">
-                            <span className="text-xs text-gray-400">
-                              {formatTime(notification.createdAt)}
+                            <span className="text-xs text-gray-500">
+                              {formatTimeAgo(notification.createdAt)}
                             </span>
                             {!notification.isRead && (
                               <button
                                 onClick={() => handleMarkAsRead(notification.id)}
-                                className="text-blue-600 hover:text-blue-800 p-1 rounded"
+                                className="text-blue-600 hover:text-blue-800"
                                 title="Mark as read"
                               >
                                 <Check className="w-3 h-3" />
@@ -200,16 +197,19 @@ export default function NotificationBell({ className = '' }: NotificationBellPro
                             )}
                           </div>
                         </div>
-                        <p className={`text-sm mt-1 ${
-                          !notification.isRead ? 'text-gray-700' : 'text-gray-500'
-                        }`}>
+                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
                           {notification.message}
                         </p>
-                        {notification.metadata && typeof notification.metadata === 'object' && 'issueId' in notification.metadata && (
-                          <div className="mt-2">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              Issue #{String(notification.metadata.issueId)}
-                            </span>
+                        {notification.metadata && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {notification.channels.map((channel) => (
+                              <span
+                                key={channel}
+                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+                              >
+                                {channel}
+                              </span>
+                            ))}
                           </div>
                         )}
                       </div>
@@ -222,24 +222,14 @@ export default function NotificationBell({ className = '' }: NotificationBellPro
 
           {/* Footer */}
           {notifications.length > 0 && (
-            <div className="p-3 border-t border-gray-200 bg-gray-50 text-center">
-              <button
-                onClick={() => {/* TODO: Navigate to notifications page */}}
-                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-              >
-                View all notifications
-              </button>
+            <div className="p-3 border-t border-gray-200 bg-gray-50">
+              <div className="flex items-center justify-between text-xs text-gray-500">
+                <span>{unreadCount} unread</span>
+                <span>{notifications.length} total</span>
+              </div>
             </div>
           )}
         </div>
-      )}
-
-      {/* Click outside to close */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsOpen(false)}
-        />
       )}
     </div>
   );

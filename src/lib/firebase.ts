@@ -6,13 +6,13 @@ import { User } from './types';
 
 // Your Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAIe8VDPlWv2h1PY9PEpl8uMoTmcDnUuwE",
-  authDomain: "authapp-3bd50.firebaseapp.com",
-  databaseURL: "https://authapp-3bd50-default-rtdb.firebaseio.com",
-  projectId: "authapp-3bd50",
-  storageBucket: "authapp-3bd50.firebasestorage.app",
-  messagingSenderId: "178885454844",
-  appId: "1:178885454844:web:ea2c9caed5d8d0e88d2079"
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
 // Initialize Firebase

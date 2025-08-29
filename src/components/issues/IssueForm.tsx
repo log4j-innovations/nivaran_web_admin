@@ -43,18 +43,7 @@ const issueCategories = [
   { value: 'sidewalk', label: 'Sidewalk / Footpath Damage', icon: '🚶', description: 'Pedestrian paths' },
   { value: 'drainage', label: 'Drainage / Clogging', icon: '🌊', description: 'Water drainage' },
   { value: 'debris', label: 'Debris / Fallen Tree', icon: '🌳', description: 'Obstacles on road' },
-  { value: 'other', label: 'Other', icon: '❓', description: 'Other issues' }
-];
-
-const issueCategories = [
-  { value: 'pothole', label: 'Pothole', icon: '🕳️' },
-  { value: 'street_light', label: 'Street Light Fault', icon: '💡' },
-  { value: 'water_leak', label: 'Water Leak / Pipe Burst', icon: '💧' },
-  { value: 'traffic_signal', label: 'Traffic Signal Fault', icon: '🚦' },
-  { value: 'sidewalk', label: 'Sidewalk / Footpath Damage', icon: '🚶' },
-  { value: 'drainage', label: 'Drainage / Clogging', icon: '🌊' },
-  { value: 'debris', label: 'Debris / Fallen Tree', icon: '🌳' },
-  { value: 'other', label: 'Other', icon: '📋' }
+  { value: 'other', label: 'Other', icon: '📋', description: 'Other issues' }
 ];
 
 const priorityLevels = [

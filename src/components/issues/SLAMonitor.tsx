@@ -111,9 +111,11 @@ export default function SLAMonitor({
 
       if (shouldSendWarning) {
         // Send warning notification
-        const warningNotification = NotificationService.createFromTemplate(
-          'sla_warning',
+        const notificationService = NotificationService.getInstance();
+        await notificationService.createNotificationFromTemplate(
+          'supervisor_sla_warning',
           user.id,
+          'authority',
           user.role,
           {
             ISSUE_TITLE: issueTitle,
@@ -121,16 +123,16 @@ export default function SLAMonitor({
             PRIORITY: priority,
             TIME_REMAINING: Math.floor(currentStatus.hoursRemaining).toString()
           },
-          { issueId }
+          issueId
         );
-        await NotificationService.createNotification(warningNotification);
         setLastWarningSent(now);
         toast.info('SLA Warning', `SLA warning sent for issue: ${issueTitle}`);
       }
 
       if (shouldSendEscalation) {
         // Send escalation notification
-        await NotificationService.sendEscalationNotification(
+        const notificationService = NotificationService.getInstance();
+        await notificationService.sendEscalationNotification(
           issueId,
           issueTitle,
           'city_engineer',

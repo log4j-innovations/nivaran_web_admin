@@ -77,6 +77,7 @@ export default function IssueDetails({ issueId, onClose, onUpdate }: IssueDetail
   const [loading, setLoading] = useState(true);
   const [showAssignment, setShowAssignment] = useState(false);
   const [showWorkflow, setShowWorkflow] = useState(false);
+  const [showEdit, setShowEdit] = useState(false);
   const [newComment, setNewComment] = useState('');
 
   // Fetch issue details
@@ -232,6 +233,13 @@ export default function IssueDetails({ issueId, onClose, onUpdate }: IssueDetail
               >
                 <Play className="w-4 h-4" />
                 <span>Workflow</span>
+              </button>
+              <button
+                onClick={() => setShowEdit(true)}
+                className="px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-colors flex items-center space-x-2"
+              >
+                <Edit className="w-4 h-4" />
+                <span>Edit</span>
               </button>
               <button
                 onClick={onClose}
@@ -474,12 +482,111 @@ export default function IssueDetails({ issueId, onClose, onUpdate }: IssueDetail
 
       {showWorkflow && (
         <IssueWorkflow
-          issueId={issue.id}
-          currentStatus={issue.status}
-          currentAssignee={issue.assignedTo}
-          onStatusChange={handleStatusUpdate}
+          issue={issue}
+          onUpdate={handleStatusUpdate}
           onClose={() => setShowWorkflow(false)}
         />
+      )}
+
+      {showEdit && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 text-white">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Edit className="w-8 h-8" />
+                  <div>
+                    <h2 className="text-2xl font-bold">Edit Issue</h2>
+                    <p className="text-blue-100">#{issue.id}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowEdit(false)}
+                  className="text-white hover:text-blue-100 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Title
+                  </label>
+                  <input
+                    type="text"
+                    defaultValue={issue.title}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-500 bg-white"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description
+                  </label>
+                  <textarea
+                    defaultValue={issue.description}
+                    rows={4}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 placeholder-gray-500 bg-white"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Priority
+                    </label>
+                    <select
+                      defaultValue={issue.priority}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 bg-white"
+                    >
+                      <option value="low">Low</option>
+                      <option value="medium">Medium</option>
+                      <option value="high">High</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Severity
+                    </label>
+                    <select
+                      defaultValue={issue.severity}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors text-gray-900 bg-white"
+                    >
+                      <option value="minor">Minor</option>
+                      <option value="moderate">Moderate</option>
+                      <option value="major">Major</option>
+                      <option value="critical">Critical</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="flex justify-end space-x-3">
+                  <button
+                    onClick={() => setShowEdit(false)}
+                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => {
+                      toast.success('Issue Updated', 'Issue details updated successfully');
+                      setShowEdit(false);
+                      onUpdate();
+                    }}
+                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                  >
+                    Save Changes
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

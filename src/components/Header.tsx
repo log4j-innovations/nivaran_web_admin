@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/lib/authContext';
 import { useRouter } from 'next/navigation';
-import { Menu, LogOut, ChevronDown } from 'lucide-react';
+import { Menu, LogOut, ChevronDown, Sun, Moon } from 'lucide-react';
 import NotificationBell from './NotificationBell';
 import { LoadingSpinner } from './LoadingSpinner';
 
@@ -16,6 +16,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   const router = useRouter();
   const [signingOut, setSigningOut] = useState(false);
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -61,6 +62,15 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
         {/* Right side - Actions and Profile */}
         <div className="flex items-center space-x-3">
+          {/* Theme Toggle */}
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className="p-2 rounded-xl text-gray-500 hover:text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105"
+            aria-label="Toggle theme"
+          >
+            {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </button>
+
           {/* Notifications */}
           <NotificationBell />
 

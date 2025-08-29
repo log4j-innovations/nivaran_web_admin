@@ -13,6 +13,7 @@ import {
   Settings, 
   FileText,
   Shield,
+  Clock,
   X
 } from 'lucide-react';
 
@@ -32,13 +33,25 @@ const navigationSections = {
     { name: 'Issues', href: '/issues', icon: AlertTriangle, badge: '12' },
     { name: 'Users', href: '/dashboard/users', icon: Users, role: 'super_admin' },
     { name: 'Areas', href: '/dashboard/areas', icon: MapPin },
-    { name: 'Reports', href: '/dashboard/reports', icon: BarChart3 },
+    { name: 'Reports', href: '/reports', icon: FileText, role: 'super_admin' },
+    { name: 'Reports', href: '/reports', icon: FileText, role: 'city_engineer' },
+    { name: 'Reports', href: '/reports', icon: FileText, role: 'auditor' },
     { name: 'Analytics', href: '/analytics', icon: BarChart3, role: 'super_admin' },
     { name: 'Analytics', href: '/analytics', icon: BarChart3, role: 'city_engineer' },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3, role: 'auditor' }
+    { name: 'Analytics', href: '/analytics', icon: BarChart3, role: 'field_supervisor' },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3, role: 'auditor' },
+    { name: 'Advanced Analytics', href: '/advanced-analytics', icon: BarChart3, role: 'super_admin' },
+    { name: 'Advanced Analytics', href: '/advanced-analytics', icon: BarChart3, role: 'city_engineer' },
+    { name: 'Advanced Analytics', href: '/advanced-analytics', icon: BarChart3, role: 'auditor' },
+    { name: 'SLA Monitor', href: '/sla-monitor', icon: Clock, role: 'super_admin' },
+    { name: 'SLA Monitor', href: '/sla-monitor', icon: Clock, role: 'city_engineer' },
+    { name: 'Map View', href: '/map-view', icon: MapPin, role: 'super_admin' },
+    { name: 'Map View', href: '/map-view', icon: MapPin, role: 'city_engineer' },
+    { name: 'Map View', href: '/map-view', icon: MapPin, role: 'field_supervisor' }
   ],
   settings: [
-    { name: 'Settings', href: '/dashboard/settings', icon: Settings }
+    { name: 'Settings', href: '/settings', icon: Settings, role: 'super_admin' },
+    { name: 'Settings', href: '/settings', icon: Settings, role: 'city_engineer' }
   ]
 };
 
