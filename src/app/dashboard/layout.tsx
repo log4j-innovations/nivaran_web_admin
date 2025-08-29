@@ -64,33 +64,32 @@ export default function DashboardLayout({
         />
       )}
 
-      <div className="flex h-screen">
-        {/* Sidebar - Dynamic width */}
-        <div className="hidden lg:flex lg:flex-shrink-0 transition-all duration-300 ease-in-out">
-          <div className={`flex flex-col transition-all duration-300 ease-in-out ${
-            sidebarCollapsed ? 'w-16' : 'w-70'
-          }`}>
+      {/* Main Layout Container */}
+      <div className="flex min-h-screen">
+        {/* Desktop Sidebar - Fixed Width */}
+        <div className={`hidden lg:flex lg:flex-shrink-0 transition-all duration-300 ease-in-out ${
+          sidebarCollapsed ? 'w-16' : 'w-70'
+        }`}>
+          <div className="w-full">
             <Sidebar className={sidebarCollapsed ? 'collapsed' : ''} />
           </div>
         </div>
 
-        {/* Mobile Sidebar */}
+        {/* Mobile Sidebar Overlay */}
         <div className={`fixed inset-y-0 left-0 z-50 w-70 lg:hidden transform transition-transform duration-300 ease-in-out ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}>
+        } shadow-xl`}>
           <Sidebar />
         </div>
 
-        {/* Main content area - Flexible */}
-        <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header */}
+        {/* Main Content Area - Takes remaining space */}
+        <div className="flex-1 min-w-0">
+          {/* Header - Fixed at top */}
           <Header onMenuClick={() => setSidebarOpen(true)} />
 
-          {/* Page content - Scrollable */}
-          <main className="flex-1 overflow-y-auto bg-gray-50">
-            <div className="h-full w-full p-4 sm:p-6 lg:p-8">
-              {children}
-            </div>
+          {/* Page Content - Single scrollable area */}
+          <main className="bg-gray-50 p-4 sm:p-6 lg:p-8">
+            {children}
           </main>
         </div>
       </div>

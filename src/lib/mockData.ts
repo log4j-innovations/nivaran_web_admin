@@ -59,7 +59,16 @@ export const mockAuth = {
     await new Promise(resolve => setTimeout(resolve, 1000));
     
     const user = mockUsers.find(u => u.email === email);
-    if (user && password === 'admin123') {
+    
+    // Define passwords for each user role
+    const userPasswords: { [key: string]: string } = {
+      'admin@municipal.com': 'admin123',
+      'engineer@municipal.com': 'engineer123',
+      'supervisor@municipal.com': 'supervisor123',
+      'auditor@municipal.com': 'auditor123'
+    };
+    
+    if (user && password === userPasswords[email]) {
       return user;
     }
     throw new Error('Invalid credentials');

@@ -1,5 +1,4 @@
 import React, { memo } from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
 
 interface StatsCardProps {
   title: string;

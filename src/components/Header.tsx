@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/lib/authContext';
 import { useRouter } from 'next/navigation';
-import { Menu, LogOut, User, Settings, Bell, ChevronDown } from 'lucide-react';
+import { Menu, LogOut, Bell, ChevronDown } from 'lucide-react';
 import { LoadingSpinner } from './LoadingSpinner';
 
 interface HeaderProps {
@@ -29,7 +29,7 @@ export const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="bg-white/95 backdrop-blur-md border-b border-gray-200 sticky top-0 z-30 shadow-sm">
+    <header className="bg-white/95 backdrop-blur-md border-b border-gray-200 shadow-sm">
       <div className="flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         {/* Left side - Mobile menu button */}
         <div className="flex items-center lg:hidden">

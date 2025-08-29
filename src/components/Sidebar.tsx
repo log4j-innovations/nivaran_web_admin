@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '@/lib/authContext';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -13,8 +13,6 @@ import {
   Settings, 
   FileText,
   Shield,
-  Clock,
-  CheckCircle,
   X
 } from 'lucide-react';
 
@@ -43,7 +41,7 @@ const navigationSections = {
 };
 
 export const Sidebar: React.FC<{ className?: string }> = ({ className = '' }) => {
-  const { user, signOutUser } = useAuth();
+  const { user } = useAuth();
   const pathname = usePathname();
   
   // Check if sidebar is collapsed based on className
@@ -61,7 +59,7 @@ export const Sidebar: React.FC<{ className?: string }> = ({ className = '' }) =>
   };
 
   return (
-    <div className={`bg-white border-r border-gray-200 w-full h-full flex flex-col ${className}`}>
+    <div className={`bg-white border-r border-gray-200 w-full min-h-screen flex flex-col ${className}`}>
       {/* Sidebar Header */}
       <div className={`border-b border-gray-200 transition-all duration-300 ${isCollapsed ? 'p-3' : 'p-6'}`}>
         <div className="flex items-center justify-between">

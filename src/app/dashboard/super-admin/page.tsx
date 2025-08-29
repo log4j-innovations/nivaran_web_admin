@@ -2,31 +2,29 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/authContext';
+import { RoleGuard } from '@/components/RoleGuard';
+import { useToast } from '@/lib/toastContext';
+import { StatusBadge } from '@/components/ui/StatusBadge';
+import { PriorityIndicator } from '@/components/ui/PriorityIndicator';
 import {
-  AlertTriangle,
-  CheckCircle,
-  Clock,
   Users,
-  MapPin,
-  TrendingUp,
-  FileText,
   Shield,
-  BarChart3,
-  Settings,
-  Activity,
   Database,
   Server,
-  Wifi,
-  Bell,
-  Plus,
+  Activity,
+  AlertTriangle,
+  CheckCircle,
+  Settings,
   Eye,
   Filter,
   ArrowUpRight,
   ArrowDownRight,
   UserPlus,
-  AlertCircle,
-  PieChart,
-  MonitorSpeaker
+  HardDrive,
+  BarChart3,
+  MonitorSpeaker,
+  Wrench,
+  Wifi
 } from 'lucide-react';
 
 interface StatItem {
@@ -41,9 +39,34 @@ interface StatItem {
   };
 }
 
-export default function DashboardPage() {
+export default function SuperAdminDashboard() {
   const { user } = useAuth();
+  const toast = useToast();
   const [greeting, setGreeting] = useState('Good morning');
+
+  return (
+    <RoleGuard allowedRoles={['super_admin']}>
+      <SuperAdminDashboardContent user={user} toast={toast} greeting={greeting} setGreeting={setGreeting} />
+    </RoleGuard>
+  );
+}
+
+interface SuperAdminDashboardContentProps {
+  user: {
+    name: string;
+    role: string;
+  } | null;
+  toast: {
+    success: (title: string, message?: string) => void;
+    warning: (title: string, message?: string) => void;
+    info: (title: string, message?: string) => void;
+    error: (title: string, message?: string) => void;
+  };
+  greeting: string;
+  setGreeting: (greeting: string) => void;
+}
+
+function SuperAdminDashboardContent({ user, toast, greeting, setGreeting }: SuperAdminDashboardContentProps) {
 
   useEffect(() => {
     const time = new Date().getHours();
@@ -56,81 +79,68 @@ export default function DashboardPage() {
     }
 
     setGreeting(newGreeting);
-  }, []);
+  }, [setGreeting]);
 
-  const getRoleBasedStats = (): StatItem[] => {
-    switch (user?.role) {
-      case 'super_admin':
-        return [
-          {
-            title: 'Total Reports',
-            value: '156',
-            subtitle: '98 resolved this month',
-            icon: AlertTriangle,
-            color: 'blue',
-            trend: { value: 12, isPositive: true }
-          },
-          {
-            title: 'Active Users',
-            value: '89',
-            subtitle: '6 new this week',
-            icon: Users,
-            color: 'green',
-            trend: { value: 8, isPositive: true }
-          },
-          {
-            title: 'Pending Issues',
-            value: '23',
-            subtitle: 'Requires attention',
-            icon: Clock,
-            color: 'yellow',
-            trend: { value: 5, isPositive: false }
-          },
-          {
-            title: 'System Health',
-            value: '98.5%',
-            subtitle: 'Uptime this month',
-            icon: CheckCircle,
-            color: 'green',
-            trend: { value: 2, isPositive: true }
-          },
-          {
-            title: 'Geographic Areas',
-            value: '12',
-            subtitle: 'Coverage zones',
-            icon: MapPin,
-            color: 'purple'
-          },
-          {
-            title: 'Response Time',
-            value: '2.4h',
-            subtitle: 'Average response',
-            icon: Activity,
-            color: 'indigo',
-            trend: { value: 15, isPositive: true }
-          }
-        ];
-
-      default:
-        return [];
+  const superAdminStats: StatItem[] = [
+    {
+      title: 'Total System Users',
+      value: '247',
+      subtitle: '12 new this month',
+      icon: Users,
+      color: 'blue',
+      trend: { value: 8, isPositive: true }
+    },
+    {
+      title: 'Active Issues',
+      value: '34',
+      subtitle: '6 critical, 12 high priority',
+      icon: AlertTriangle,
+      color: 'red',
+      trend: { value: 5, isPositive: false }
+    },
+    {
+      title: 'System Performance',
+      value: '99.2%',
+      subtitle: 'Uptime this month',
+      icon: CheckCircle,
+      color: 'green',
+      trend: { value: 2, isPositive: true }
+    },
+    {
+      title: 'Data Storage',
+      value: '2.4TB',
+      subtitle: '68% capacity used',
+      icon: Database,
+      color: 'purple'
+    },
+    {
+      title: 'Response Time',
+      value: '1.2h',
+      subtitle: 'Average system response',
+      icon: Activity,
+      color: 'indigo',
+      trend: { value: 15, isPositive: true }
+    },
+    {
+      title: 'Security Status',
+      value: 'Secure',
+      subtitle: 'All systems protected',
+      icon: Shield,
+      color: 'green'
     }
-  };
-
-  const getWelcomeMessage = () => {
-    return `${greeting}, ${user?.name}`;
-  };
+  ];
 
   return (
-    <div className="space-y-6 w-full min-h-screen bg-gray-50">
-      {/* Modern Welcome Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 rounded-2xl p-8 text-white shadow-xl">
+    <div className="space-y-6 w-full">
+      {/* Super Admin Welcome Header with Deep Blue Theme */}
+      <div className="bg-gradient-to-r from-blue-800 via-blue-900 to-indigo-900 rounded-2xl p-8 text-white shadow-xl">
         <div className="flex items-center justify-between">
           <div className="space-y-2">
             <h1 className="text-4xl font-bold tracking-tight">
-              {getWelcomeMessage()}
+              {greeting}, {user?.name}
             </h1>
             <p className="text-blue-100 text-lg font-medium">
-              Complete system oversight and management
+              System Administration & User Management
             </p>
             <div className="flex items-center space-x-4 mt-4">
               <div className="bg-white/20 px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
@@ -138,7 +148,10 @@ export default function DashboardPage() {
               </div>
               <div className="bg-green-500/80 px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm flex items-center space-x-1">
                 <div className="w-2 h-2 bg-white rounded-full"></div>
-                <span>System Online</span>
+                <span>All Systems Online</span>
+              </div>
+              <div className="bg-blue-500/80 px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
+                247 Active Users
               </div>
             </div>
           </div>
@@ -156,9 +169,9 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Main Dashboard Grid - 3 Column Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {getRoleBasedStats().map((stat, index) => (
+      {/* Main Dashboard Grid - System Admin Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+        {superAdminStats.map((stat, index) => (
           <div 
             key={`stat-${stat.title}-${index}`} 
             className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 group hover:-translate-y-1"
@@ -202,16 +215,19 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* Two Column Layout for Actions and Status */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Quick Actions - Left Side */}
+      {/* Admin Actions and System Status */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Admin Quick Actions */}
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Quick Actions</h2>
-            <Plus className="w-5 h-5 text-gray-400" />
+            <h2 className="text-xl font-bold text-gray-900">System Administration</h2>
+            <Settings className="w-5 h-5 text-gray-400" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <button className="group relative overflow-hidden bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-6 text-white hover:from-blue-600 hover:to-blue-700 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <button 
+              onClick={() => toast.success('User Added', 'New system user has been successfully created')}
+              className="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white hover:from-blue-700 hover:to-blue-800 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
               <div className="flex flex-col items-center space-y-3">
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
                   <UserPlus className="w-6 h-6" />
@@ -220,39 +236,48 @@ export default function DashboardPage() {
               </div>
             </button>
 
-            <button className="group relative overflow-hidden bg-gradient-to-br from-green-500 to-green-600 rounded-xl p-6 text-white hover:from-green-600 hover:to-green-700 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+            <button 
+              onClick={() => toast.info('System Settings', 'Configure global system parameters')}
+              className="group relative overflow-hidden bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl p-6 text-white hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
               <div className="flex flex-col items-center space-y-3">
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <MapPin className="w-6 h-6" />
+                  <Settings className="w-6 h-6" />
                 </div>
-                <span className="font-semibold">New Area</span>
+                <span className="font-semibold">Settings</span>
               </div>
             </button>
 
-            <button className="group relative overflow-hidden bg-gradient-to-br from-orange-500 to-orange-600 rounded-xl p-6 text-white hover:from-orange-600 hover:to-orange-700 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+            <button 
+              onClick={() => toast.warning('Backup Started', 'System backup process has been initiated')}
+              className="group relative overflow-hidden bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-6 text-white hover:from-purple-700 hover:to-purple-800 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
               <div className="flex flex-col items-center space-y-3">
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <AlertCircle className="w-6 h-6" />
+                  <HardDrive className="w-6 h-6" />
                 </div>
-                <span className="font-semibold">Report Issue</span>
+                <span className="font-semibold">Backup Data</span>
               </div>
             </button>
 
-            <button className="group relative overflow-hidden bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl p-6 text-white hover:from-purple-600 hover:to-purple-700 transition-all duration-300 hover:scale-105 hover:shadow-lg">
+            <button 
+              onClick={() => toast.info('Reports Generated', 'System performance reports are ready')}
+              className="group relative overflow-hidden bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-6 text-white hover:from-green-700 hover:to-green-800 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+            >
               <div className="flex flex-col items-center space-y-3">
                 <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <PieChart className="w-6 h-6" />
+                  <BarChart3 className="w-6 h-6" />
                 </div>
-                <span className="font-semibold">Analytics</span>
+                <span className="font-semibold">View Reports</span>
               </div>
             </button>
           </div>
         </div>
 
-        {/* System Status - Right Side */}
+        {/* System Health Status */}
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">System Status</h2>
+            <h2 className="text-xl font-bold text-gray-900">System Health</h2>
             <MonitorSpeaker className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-4">
@@ -262,13 +287,13 @@ export default function DashboardPage() {
                   <Database className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">Database</div>
-                  <div className="text-sm text-gray-500">Primary cluster</div>
+                  <div className="font-semibold text-gray-900">Database Cluster</div>
+                  <div className="text-sm text-gray-500">Primary & replica nodes</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium text-green-700">Online</span>
+                <span className="text-sm font-medium text-green-700">Healthy</span>
               </div>
             </div>
 
@@ -278,8 +303,8 @@ export default function DashboardPage() {
                   <Server className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">API Services</div>
-                  <div className="text-sm text-gray-500">REST & GraphQL</div>
+                  <div className="font-semibold text-gray-900">Application Servers</div>
+                  <div className="text-sm text-gray-500">Load balanced cluster</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
@@ -288,47 +313,46 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            <div className="flex items-center justify-between p-4 bg-blue-50 rounded-xl border border-blue-200">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <Wifi className="w-5 h-5 text-blue-600" />
+                </div>
+                <div>
+                  <div className="font-semibold text-gray-900">Network Status</div>
+                  <div className="text-sm text-gray-500">CDN & load balancers</div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                <span className="text-sm font-medium text-blue-700">Optimal</span>
+              </div>
+            </div>
+
             <div className="flex items-center justify-between p-4 bg-yellow-50 rounded-xl border border-yellow-200">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
-                  <Wifi className="w-5 h-5 text-yellow-600" />
+                  <Wrench className="w-5 h-5 text-yellow-600" />
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">Backup System</div>
-                  <div className="text-sm text-gray-500">Auto sync enabled</div>
+                  <div className="font-semibold text-gray-900">Maintenance Window</div>
+                  <div className="text-sm text-gray-500">Scheduled for tonight</div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
-                <span className="text-sm font-medium text-yellow-700">Syncing</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between p-4 bg-green-50 rounded-xl border border-green-200">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-                  <Bell className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <div className="font-semibold text-gray-900">Notifications</div>
-                  <div className="text-sm text-gray-500">Real-time alerts</div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <span className="text-sm font-medium text-green-700">Active</span>
+                <span className="text-sm font-medium text-yellow-700">Pending</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Bottom Section - Recent Activity and Analytics */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Recent Activity - 2/3 width */}
-        <div className="xl:col-span-2 bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+      {/* Recent Admin Activities */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Recent Activity</h2>
+            <h2 className="text-xl font-bold text-gray-900">Recent System Activities</h2>
             <button className="text-blue-600 hover:text-blue-800 text-sm font-semibold flex items-center space-x-1">
               <Eye className="w-4 h-4" />
               <span>View All</span>
@@ -336,11 +360,11 @@ export default function DashboardPage() {
           </div>
           <div className="space-y-4">
             {[
-              { action: "New issue reported", detail: "Pothole on Main Street", time: "2 min ago", type: "issue", color: "red" },
-              { action: "User registration", detail: "Sarah Johnson joined as Engineer", time: "5 min ago", type: "user", color: "green" },
-              { action: "Issue resolved", detail: "Streetlight repair completed", time: "12 min ago", type: "resolution", color: "blue" },
-              { action: "System maintenance", detail: "Database backup completed", time: "1 hour ago", type: "system", color: "purple" },
-              { action: "Area updated", detail: "Downtown zone boundaries modified", time: "2 hours ago", type: "area", color: "orange" }
+              { action: "User account created", detail: "New city engineer: Sarah Johnson", time: "2 min ago", type: "user", color: "green", status: "resolved", priority: "low" },
+              { action: "System backup completed", detail: "Weekly automated backup finished", time: "15 min ago", type: "system", color: "blue", status: "resolved", priority: "medium" },
+              { action: "Security alert resolved", detail: "Failed login attempts blocked", time: "1 hour ago", type: "security", color: "red", status: "resolved", priority: "high" },
+              { action: "Database maintenance", detail: "Index optimization completed", time: "2 hours ago", type: "maintenance", color: "purple", status: "resolved", priority: "medium" },
+              { action: "New role assigned", detail: "Field supervisor permissions updated", time: "3 hours ago", type: "permission", color: "orange", status: "resolved", priority: "low" }
             ].map((activity, index) => (
               <div key={index} className="flex items-center space-x-4 p-4 hover:bg-gray-50 rounded-xl transition-colors duration-200">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
@@ -360,7 +384,11 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex-1">
                   <div className="font-semibold text-gray-900">{activity.action}</div>
-                  <div className="text-sm text-gray-500">{activity.detail}</div>
+                  <div className="text-sm text-gray-500 mb-2">{activity.detail}</div>
+                  <div className="flex items-center space-x-2">
+                    <StatusBadge status={activity.status as 'pending' | 'in_progress' | 'resolved' | 'escalated' | 'closed'} size="sm" />
+                    <PriorityIndicator priority={activity.priority as 'low' | 'medium' | 'high' | 'critical'} variant="icon" size="sm" />
+                  </div>
                 </div>
                 <div className="text-sm text-gray-400 font-medium">{activity.time}</div>
               </div>
@@ -368,24 +396,24 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Mini Analytics - 1/3 width */}
+        {/* System Analytics */}
         <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Issue Categories</h2>
+            <h2 className="text-xl font-bold text-gray-900">System Metrics</h2>
             <Filter className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-4">
             {[
-              { category: "Road Safety", count: 45, percentage: 65, color: "bg-red-500" },
-              { category: "Utilities", count: 23, percentage: 40, color: "bg-blue-500" },
-              { category: "Lighting", count: 18, percentage: 30, color: "bg-yellow-500" },
-              { category: "Parks", count: 12, percentage: 20, color: "bg-green-500" },
-              { category: "Traffic", count: 8, percentage: 15, color: "bg-purple-500" }
+              { metric: "Active Sessions", count: 127, percentage: 85, color: "bg-blue-500" },
+              { metric: "CPU Usage", count: 45, percentage: 45, color: "bg-green-500" },
+              { metric: "Memory Usage", count: 68, percentage: 68, color: "bg-yellow-500" },
+              { metric: "Disk Usage", count: 72, percentage: 72, color: "bg-orange-500" },
+              { metric: "Network I/O", count: 34, percentage: 34, color: "bg-purple-500" }
             ].map((item, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm font-medium text-gray-700">{item.category}</span>
-                  <span className="text-sm font-bold text-gray-900">{item.count}</span>
+                  <span className="text-sm font-medium text-gray-700">{item.metric}</span>
+                  <span className="text-sm font-bold text-gray-900">{item.count}%</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 

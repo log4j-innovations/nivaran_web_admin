@@ -12,10 +12,7 @@ interface ToastProps {
   onClose: (id: string) => void;
 }
 
-interface ToastContextType {
-  addToast: (toast: Omit<ToastProps, 'id' | 'onClose'>) => void;
-  removeToast: (id: string) => void;
-}
+
 
 const toastConfig = {
   success: {
@@ -58,6 +55,11 @@ export const Toast: React.FC<ToastProps> = ({
   const config = toastConfig[type];
   const Icon = config.icon;
 
+  const handleClose = () => {
+    setIsVisible(false);
+    setTimeout(() => onClose(id), 300);
+  };
+
   useEffect(() => {
     // Trigger entrance animation
     const timer = setTimeout(() => setIsVisible(true), 10);
@@ -79,12 +81,7 @@ export const Toast: React.FC<ToastProps> = ({
     }, 100);
 
     return () => clearInterval(interval);
-  }, [duration]);
-
-  const handleClose = () => {
-    setIsVisible(false);
-    setTimeout(() => onClose(id), 300);
-  };
+  }, [duration, handleClose]);
 
   return (
     <div
