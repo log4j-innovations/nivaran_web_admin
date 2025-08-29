@@ -2,11 +2,13 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User } from './types';
-import { mockAuth } from './mockData';
+import { firebaseAuth, firestoreService } from './firebase';
+import { User as FirebaseUser } from 'firebase/auth';
+import { Timestamp } from 'firebase/firestore';
 
 interface AuthContextType {
   user: User | null;
-  firebaseUser: User | null;
+  firebaseUser: FirebaseUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signOutUser: () => Promise<void>;
@@ -24,55 +26,66 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [firebaseUser, setFirebaseUser] = useState<User | null>(null);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate checking for existing session
-    const checkAuth = async () => {
-      try {
-        // Check if user is already logged in (from localStorage)
-        const savedUser = localStorage.getItem('municipal_user');
-        if (savedUser) {
-          const userData = JSON.parse(savedUser);
-          setUser(userData);
-          setFirebaseUser(userData);
+    // Listen for Firebase auth state changes
+    const unsubscribe = firebaseAuth.onAuthStateChanged(async (firebaseUser) => {
+      setFirebaseUser(firebaseUser);
+      
+      if (firebaseUser) {
+        try {
+          // Get user data from Firestore
+          const userData = await firestoreService.getUser(firebaseUser.uid);
+          if (userData) {
+            // Convert Firestore timestamps to Date objects
+            const user: User = {
+              ...userData,
+              createdAt: (userData as { createdAt?: Timestamp }).createdAt?.toDate() || new Date(),
+              lastLogin: (userData as { lastLogin?: Timestamp }).lastLogin?.toDate() || new Date(),
+            } as User;
+            
+            setUser(user);
+            
+            // Update last login
+            await firestoreService.updateUser(firebaseUser.uid, {
+              lastLogin: new Date()
+            });
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
         }
-      } catch (error) {
-        console.error('Error checking auth:', error);
-      } finally {
-        setLoading(false);
+      } else {
+        setUser(null);
       }
-    };
+      
+      setLoading(false);
+    });
 
-    checkAuth();
+    return () => unsubscribe();
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
-      const userData = await mockAuth.signIn(email, password);
-      setUser(userData);
-      setFirebaseUser(userData);
-      
-      // Save to localStorage for persistence
-      localStorage.setItem('municipal_user', JSON.stringify(userData));
-    } catch (error) {
+      await firebaseAuth.signIn(email, password);
+      // User data will be fetched in the auth state listener
+    } catch (error: unknown) {
       console.error('Sign in error:', error);
-      throw error;
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
+      throw new Error(errorMessage);
     }
   };
 
   const signOutUser = async () => {
     try {
-      await mockAuth.signOut();
+      await firebaseAuth.signOut();
       setUser(null);
       setFirebaseUser(null);
-      
-      // Remove from localStorage
-      localStorage.removeItem('municipal_user');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Sign out error:', error);
-      throw error;
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign out';
+      throw new Error(errorMessage);
     }
   };
 

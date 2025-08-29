@@ -119,7 +119,7 @@ export default function LoginPage() {
           {/* Demo Credentials */}
           <div className="mt-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h3 className="text-sm font-semibold text-gray-900 mb-3">
-              Demo Credentials
+              Test Credentials
             </h3>
             <div className="space-y-2 text-xs text-gray-700">
               <div className="flex justify-between">
@@ -138,6 +138,11 @@ export default function LoginPage() {
                 <span>Auditor:</span>
                 <span className="font-mono">auditor@municipal.com / auditor123</span>
               </div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-blue-200">
+              <p className="text-xs text-blue-600">
+                First time? <a href="/seed" className="underline font-medium">Setup Database</a>
+              </p>
             </div>
           </div>
         </div>

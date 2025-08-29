@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { CheckCircle, AlertCircle, Info, XCircle, X } from 'lucide-react';
 
 type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -55,10 +55,10 @@ export const Toast: React.FC<ToastProps> = ({
   const config = toastConfig[type];
   const Icon = config.icon;
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     setIsVisible(false);
     setTimeout(() => onClose(id), 300);
-  };
+  }, [id, onClose]);
 
   useEffect(() => {
     // Trigger entrance animation
