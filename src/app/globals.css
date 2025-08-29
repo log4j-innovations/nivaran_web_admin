@@ -1,15 +1,47 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Municipal Color Palette */
+  --municipal-primary: #1e40af;
+  --municipal-primary-light: #3b82f6;
+  --municipal-primary-dark: #1e3a8a;
+  --municipal-secondary: #64748b;
+  --municipal-secondary-light: #94a3b8;
+  --municipal-secondary-dark: #475569;
+  --municipal-accent: #059669;
+  --municipal-accent-light: #10b981;
+  --municipal-accent-dark: #047857;
+  --municipal-warning: #d97706;
+  --municipal-warning-light: #f59e0b;
+  --municipal-warning-dark: #b45309;
+  --municipal-error: #dc2626;
+  --municipal-error-light: #ef4444;
+  --municipal-error-dark: #b91c1c;
+  --municipal-success: #059669;
+  --municipal-success-light: #10b981;
+  --municipal-success-dark: #047857;
+  --municipal-info: #0891b2;
+  --municipal-info-light: #06b6d4;
+  --municipal-info-dark: #0e7490;
+
+  /* Status Colors */
+  --status-resolved: var(--municipal-success);
+  --status-in-progress: var(--municipal-info);
+  --status-pending: var(--municipal-warning);
+  --status-critical: var(--municipal-error);
+
+  /* Priority Colors */
+  --priority-low: var(--municipal-success);
+  --priority-medium: var(--municipal-warning);
+  --priority-high: var(--municipal-error);
+  --priority-critical: var(--municipal-error-dark);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +54,113 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Smooth Animations and Transitions */
+* {
+  transition-property:
+    color, background-color, border-color, text-decoration-color, fill, stroke,
+    opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Card hover animations */
+.card-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Button animations */
+.btn-press {
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-press:active {
+  transform: scale(0.98);
+}
+
+/* Loading animations */
+@keyframes pulse-municipal {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-municipal {
+  animation: pulse-municipal 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Slide up animation */
+@keyframes slideUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+/* Focus ring styles */
+.focus-ring:focus {
+  outline: 2px solid var(--municipal-primary);
+  outline-offset: 2px;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Performance optimizations */
+* {
+  box-sizing: border-box;
+}
+
+/* Responsive utilities */
+@layer utilities {
+  .container-responsive {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+  }
+  
+  .text-responsive {
+    @apply text-sm sm:text-base lg:text-lg;
+  }
+  
+  .spacing-responsive {
+    @apply space-y-4 sm:space-y-6 lg:space-y-8;
+  }
 }
