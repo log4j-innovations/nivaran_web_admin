@@ -11,11 +11,7 @@ import {
   Clock,
   Users,
   MapPin,
-  TrendingUp,
-  FileText,
   Shield,
-  BarChart3,
-  Settings,
   Activity,
   Database,
   Server,
@@ -378,8 +374,8 @@ export default function DashboardPage() {
                   <div className="font-semibold text-gray-900">{activity.action}</div>
                   <div className="text-sm text-gray-500 mb-2">{activity.detail}</div>
                   <div className="flex items-center space-x-2">
-                    <StatusBadge status={activity.status as any} size="sm" />
-                    <PriorityIndicator priority={activity.priority as any} variant="icon" size="sm" />
+                    <StatusBadge status={activity.status as 'pending' | 'in_progress' | 'resolved' | 'escalated' | 'closed'} size="sm" />
+                    <PriorityIndicator priority={activity.priority as 'low' | 'medium' | 'high' | 'critical'} variant="icon" size="sm" />
                   </div>
                 </div>
                 <div className="text-sm text-gray-400 font-medium">{activity.time}</div>
