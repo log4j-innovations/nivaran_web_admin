@@ -1,0 +1,129 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function getUserRole() {
+      let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
+      return userDoc != null ? userDoc.data.role : null;
+    }
+    
+    function hasRole() {
+      return getUserRole() != null;
+    }
+    
+    function isSuperAdmin() {
+      return isAuthenticated() && hasRole() && getUserRole() == 'super_admin';
+    }
+    
+    function isCityEngineer() {
+      return isAuthenticated() && hasRole() && getUserRole() == 'city_engineer';
+    }
+    
+    function isFieldSupervisor() {
+      return isAuthenticated() && hasRole() && getUserRole() == 'field_supervisor';
+    }
+    
+    function isAuditor() {
+      return isAuthenticated() && hasRole() && getUserRole() == 'auditor';
+    }
+    
+    function isCitizen() {
+      return isAuthenticated() && hasRole() && getUserRole() == 'citizen';
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAssignedTo(issueId) {
+      return isAuthenticated() && 
+             exists(/databases/$(database)/documents/issues/$(issueId)) &&
+             get(/databases/$(database)/documents/issues/$(issueId)).data.assignedTo == request.auth.uid;
+    }
+    
+    // Users collection - More permissive for initial setup
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwner(userId) || isSuperAdmin();
+      allow delete: if isSuperAdmin();
+    }
+    
+    // Issues collection
+    match /issues/{issueId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        isOwner(resource.data.reportedBy) ||
+        isAssignedTo(issueId) ||
+        isCityEngineer() ||
+        isSuperAdmin()
+      );
+      allow delete: if isSuperAdmin();
+    }
+    
+    // Areas collection
+    match /areas/{areaId} {
+      allow read: if isAuthenticated();
+      allow write: if isCityEngineer() || isSuperAdmin();
+    }
+    
+    // Activities collection
+    match /activities/{activityId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        isOwner(resource.data.userId) ||
+        isCityEngineer() ||
+        isSuperAdmin()
+      );
+      allow delete: if isSuperAdmin();
+    }
+    
+    // Notifications collection - More permissive for initial setup
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (
+        isOwner(resource.data.recipientId) ||
+        (hasRole() && getUserRole() == resource.data.recipientRole) ||
+        isSuperAdmin()
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (
+        isOwner(resource.data.recipientId) ||
+        isSuperAdmin()
+      );
+      allow delete: if isSuperAdmin();
+    }
+    
+    // Analytics collections
+    match /analytics_metrics/{document} {
+      allow read: if isAuthenticated();
+      allow write: if isCityEngineer() || isSuperAdmin();
+    }
+    
+    match /area_metrics/{document} {
+      allow read: if isAuthenticated();
+      allow write: if isCityEngineer() || isSuperAdmin();
+    }
+    
+    match /user_metrics/{document} {
+      allow read: if isAuthenticated();
+      allow write: if isCityEngineer() || isSuperAdmin();
+    }
+    
+    // Additional collections that might be accessed
+    match /departments/{document} {
+      allow read: if isAuthenticated();
+      allow write: if isCityEngineer() || isSuperAdmin();
+    }
+    
+    match /sla_targets/{document} {
+      allow read: if isAuthenticated();
+      allow write: if isCityEngineer() || isSuperAdmin();
+    }
+  }
+}

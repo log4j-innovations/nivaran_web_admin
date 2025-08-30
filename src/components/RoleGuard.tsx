@@ -1,117 +1,85 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/lib/authContext';
 import { useRouter } from 'next/navigation';
 import { LoadingSpinner } from './LoadingSpinner';
 
 interface RoleGuardProps {
-  allowedRoles: string[];
   children: React.ReactNode;
-  redirectTo?: string;
+  allowedRoles?: string[];
+  requireAuth?: boolean;
+  fallback?: React.ReactNode;
 }
 
-export const RoleGuard: React.FC<RoleGuardProps> = ({ 
-  allowedRoles, 
-  children, 
-  redirectTo = '/dashboard' 
+export const RoleGuard: React.FC<RoleGuardProps> = ({
+  children,
+  allowedRoles = [],
+  requireAuth = true,
+  fallback = null
 }) => {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [redirecting, setRedirecting] = useState(false);
-  const [redirectTimeout, setRedirectTimeout] = useState<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
-    console.log('🛡️ RoleGuard: Checking permissions', { 
-      loading, 
-      user: user ? { id: user.id, role: user.role } : null, 
-      allowedRoles 
-    });
-
-    if (!loading) {
-      if (!user) {
-        console.log('🛡️ RoleGuard: No user, redirecting to login');
-        setRedirecting(true);
-        router.push('/login');
-        return;
-      }
-
-      if (!allowedRoles.includes(user.role)) {
-        console.log('🛡️ RoleGuard: User role not allowed, redirecting to appropriate dashboard');
-        setRedirecting(true);
-        
-        // Set a timeout for the redirect to prevent infinite loading
-        const timeout = setTimeout(() => {
-          console.warn('⚠️ RoleGuard: Redirect timeout, forcing navigation');
-          router.push(redirectTo);
-        }, 3000);
-
-        setRedirectTimeout(timeout);
-
-        // Redirect to appropriate dashboard based on role
-        switch (user.role) {
-          case 'super_admin':
-            router.push('/dashboard/super-admin');
-            break;
-          case 'city_engineer':
-            router.push('/dashboard/city-engineer');
-            break;
-          case 'field_supervisor':
-            router.push('/dashboard/field-supervisor');
-            break;
-          case 'auditor':
-            router.push('/dashboard/auditor');
-            break;
-          case 'citizen':
-            router.push('/dashboard'); // Default dashboard for citizens
-            break;
-          default:
-            console.warn('⚠️ RoleGuard: Unknown user role, redirecting to default');
-            router.push(redirectTo);
-            break;
-        }
-      } else {
-        console.log('🛡️ RoleGuard: User has permission, rendering children');
-      }
-    }
-  }, [user, loading, allowedRoles, redirectTo, router]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (redirectTimeout) {
-        clearTimeout(redirectTimeout);
-      }
-    };
-  }, [redirectTimeout]);
-
+  // Show loading state while checking authentication
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <LoadingSpinner size="lg" />
-          <p className="mt-4 text-gray-600">Verifying permissions...</p>
-          <p className="mt-2 text-sm text-gray-500">Please wait while we check your access</p>
+          <p className="mt-4 text-gray-600">Verifying access...</p>
         </div>
       </div>
     );
   }
 
-  if (!user || !allowedRoles.includes(user.role)) {
+  // If authentication is required but no user is logged in
+  if (requireAuth && !user) {
+    // Redirect to login page
+    React.useEffect(() => {
+      router.push('/login');
+    }, [router]);
+    
+    return fallback || (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+            <p className="text-gray-600 mb-4">You must be logged in to access this page.</p>
+            <p className="text-sm text-gray-500">Redirecting to login...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // If specific roles are required, check if user has access
+  if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.role)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-gray-600">
-            {redirecting ? 'Redirecting...' : 'Access denied'}
-          </p>
-          <p className="mt-2 text-sm text-gray-500">
-            {redirecting ? 'Taking you to the right place' : 'You don\'t have permission to view this page'}
-          </p>
+          <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+            <p className="text-gray-600 mb-4">
+              You don't have permission to access this page.
+            </p>
+            <p className="text-sm text-gray-500">
+              Required role: {allowedRoles.join(' or ')}
+              <br />
+              Your role: {user.role}
+            </p>
+            <button
+              onClick={() => router.push('/dashboard')}
+              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Go to Dashboard
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
+  // User has access, render children
   return <>{children}</>;
 };

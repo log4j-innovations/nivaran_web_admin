@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut, onAuthStateChanged, User as FirebaseUser, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getFirestore, doc, setDoc, getDoc, collection, addDoc, updateDoc, query, where, orderBy, getDocs, Timestamp } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { User } from './types';
@@ -23,27 +23,47 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
+// Set persistence to LOCAL (persists across browser sessions)
+setPersistence(auth, browserLocalPersistence).catch((error) => {
+  console.warn('⚠️ Firebase: Failed to set persistence:', error);
+});
+
 // Firebase Authentication Services
 export const firebaseAuth = {
   signIn: async (email: string, password: string) => {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      return userCredential.user;
+    } catch (error) {
+      console.error('❌ Firebase Auth: Sign in error:', error);
+      throw error;
+    }
   },
   
   signUp: async (email: string, password: string, userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>) => {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    // Create user document in Firestore
-    await setDoc(doc(db, 'users', userCredential.user.uid), {
-      ...userData,
-      email,
-      createdAt: Timestamp.now(),
-      lastLogin: Timestamp.now()
-    });
-    return userCredential.user;
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Create user document in Firestore
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        ...userData,
+        email,
+        createdAt: Timestamp.now(),
+        lastLogin: Timestamp.now()
+      });
+      return userCredential.user;
+    } catch (error) {
+      console.error('❌ Firebase Auth: Sign up error:', error);
+      throw error;
+    }
   },
   
   signOut: async () => {
-    await firebaseSignOut(auth);
+    try {
+      await firebaseSignOut(auth);
+    } catch (error) {
+      console.error('❌ Firebase Auth: Sign out error:', error);
+      throw error;
+    }
   },
   
   onAuthStateChanged: (callback: (user: FirebaseUser | null) => void) => {
@@ -55,16 +75,21 @@ export const firebaseAuth = {
 export const firestoreService = {
   // User operations
   createUser: async (userId: string, userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>) => {
-    await setDoc(doc(db, 'users', userId), {
-      ...userData,
-      createdAt: Timestamp.now(),
-      lastLogin: Timestamp.now()
-    });
+    try {
+      await setDoc(doc(db, 'users', userId), {
+        ...userData,
+        createdAt: Timestamp.now(),
+        lastLogin: Timestamp.now()
+      });
+    } catch (error) {
+      console.error('❌ Firestore: Failed to create user:', error);
+      throw error;
+    }
   },
   
   getUser: async (userId: string): Promise<{ id: string; [key: string]: unknown } | null> => {
     try {
-      console.log('🔍 Firebase: Fetching user data for:', userId);
+      console.log('🔍 Firestore: Fetching user data for:', userId);
       
       // Add timeout to prevent hanging
       const timeoutPromise = new Promise<never>((_, reject) => {
@@ -75,10 +100,10 @@ export const firestoreService = {
       const userDoc = await Promise.race([fetchPromise, timeoutPromise]);
       
       const userData = userDoc.exists() ? { id: userDoc.id, ...userDoc.data() } : null;
-      console.log('🔍 Firebase: User data result:', userData ? 'Found' : 'Not found');
+      console.log('🔍 Firestore: User data result:', userData ? 'Found' : 'Not found');
       return userData;
     } catch (error) {
-      console.error('❌ Firebase: Error fetching user data:', error);
+      console.error('❌ Firestore: Error fetching user data:', error);
       throw error;
     }
   },
@@ -88,17 +113,22 @@ export const firestoreService = {
       const snapshot = await getDocs(collection(db, 'users'));
       return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     } catch (error) {
-      console.warn('⚠️ Firebase: Permission error fetching users:', error);
+      console.warn('⚠️ Firestore: Permission error fetching users:', error);
       // Return empty array on permission error instead of breaking
       return [];
     }
   },
   
   updateUser: async (userId: string, userData: Partial<User>) => {
-    await updateDoc(doc(db, 'users', userId), {
-      ...userData,
-      updatedAt: Timestamp.now()
-    });
+    try {
+      await updateDoc(doc(db, 'users', userId), {
+        ...userData,
+        updatedAt: Timestamp.now()
+      });
+    } catch (error) {
+      console.error('❌ Firestore: Failed to update user:', error);
+      throw error;
+    }
   },
   
   // Issue operations
