@@ -4,7 +4,7 @@ export interface User {
   id: string;
   email: string;
   name: string;
-  role: 'super_admin' | 'city_engineer' | 'field_supervisor' | 'auditor';
+  role: 'super_admin' | 'city_engineer' | 'field_supervisor' | 'auditor' | 'citizen';
   department?: string;
   phone?: string;
   assignedAreas?: string[];

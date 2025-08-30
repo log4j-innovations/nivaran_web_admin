@@ -33,8 +33,23 @@ export default function DashboardLayout({
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Set a safety timeout to prevent infinite loading
   useEffect(() => {
+    if (loading) {
+      const timeout = setTimeout(() => {
+        console.warn('⚠️ DashboardLayout: Loading timeout reached, forcing redirect to login');
+        router.push('/login');
+      }, 15000); // 15 second timeout
+
+      return () => clearTimeout(timeout);
+    }
+  }, [loading, router]);
+
+  useEffect(() => {
+    console.log('🏗️ DashboardLayout: Auth state changed', { loading, user: user ? user.role : null });
+    
     if (!loading && !user) {
+      console.log('🏗️ DashboardLayout: No user, redirecting to login');
       router.push('/login');
     }
   }, [user, loading, router]);
@@ -45,6 +60,7 @@ export default function DashboardLayout({
         <div className="text-center">
           <LoadingSpinner size="lg" />
           <p className="mt-4 text-gray-600">Loading dashboard...</p>
+          <p className="mt-2 text-sm text-gray-500">Please wait while we verify your access</p>
         </div>
       </div>
     );

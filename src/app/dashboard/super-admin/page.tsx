@@ -133,16 +133,16 @@ function SuperAdminDashboardContent({ user, toast, greeting, setGreeting }: Supe
   return (
     <div className="space-y-6 w-full">
       {/* Super Admin Welcome Header with Deep Blue Theme */}
-      <div className="bg-gradient-to-r from-blue-800 via-blue-900 to-indigo-900 rounded-2xl p-8 text-white shadow-xl">
-        <div className="flex items-center justify-between">
+      <div className="bg-gradient-to-r from-blue-800 via-blue-900 to-indigo-900 rounded-2xl p-4 sm:p-6 lg:p-8 text-white shadow-xl">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
           <div className="space-y-2">
-            <h1 className="text-4xl font-bold tracking-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight">
               {greeting}, {user?.name}
             </h1>
-            <p className="text-blue-100 text-lg font-medium">
+            <p className="text-blue-100 text-base sm:text-lg font-medium">
               System Administration & User Management
             </p>
-            <div className="flex items-center space-x-4 mt-4">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-4 mt-4">
               <div className="bg-white/20 px-3 py-1 rounded-full text-sm font-medium backdrop-blur-sm">
                 Super Administrator
               </div>
@@ -155,30 +155,30 @@ function SuperAdminDashboardContent({ user, toast, greeting, setGreeting }: Supe
               </div>
             </div>
           </div>
-          <div className="flex items-center space-x-6">
-            <div className="text-center bg-white/10 p-4 rounded-xl backdrop-blur-sm">
-              <div className="text-3xl font-bold">{new Date().getDate()}</div>
-              <div className="text-sm text-blue-200 font-medium">
+          <div className="flex items-center justify-center lg:justify-end space-x-4 lg:space-x-6">
+            <div className="text-center bg-white/10 p-3 sm:p-4 rounded-xl backdrop-blur-sm">
+              <div className="text-2xl sm:text-3xl font-bold">{new Date().getDate()}</div>
+              <div className="text-xs sm:text-sm text-blue-200 font-medium">
                 {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
               </div>
             </div>
-            <div className="w-20 h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm hover:scale-105 transition-transform duration-300">
-              <Shield className="w-10 h-10" />
+            <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm hover:scale-105 transition-transform duration-300">
+              <Shield className="w-8 h-8 sm:w-10 sm:h-10" />
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Dashboard Grid - System Admin Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
         {superAdminStats.map((stat, index) => (
           <div 
             key={`stat-${stat.title}-${index}`} 
-            className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 group hover:-translate-y-1"
+            className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-100 group hover:-translate-y-1"
             style={{ animationDelay: `${index * 0.1}s` }}
           >
-            <div className="flex items-center justify-between mb-6">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${
+            <div className="flex items-center justify-between mb-4 sm:mb-6">
+              <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 ${
                 stat.color === 'blue' ? 'bg-blue-100 group-hover:bg-blue-200' :
                 stat.color === 'green' ? 'bg-green-100 group-hover:bg-green-200' :
                 stat.color === 'yellow' ? 'bg-yellow-100 group-hover:bg-yellow-200' :
@@ -187,7 +187,7 @@ function SuperAdminDashboardContent({ user, toast, greeting, setGreeting }: Supe
                 stat.color === 'indigo' ? 'bg-indigo-100 group-hover:bg-indigo-200' :
                 'bg-gray-100 group-hover:bg-gray-200'
               }`}>
-                <stat.icon className={`w-7 h-7 ${
+                <stat.icon className={`w-6 h-6 ${
                   stat.color === 'blue' ? 'text-blue-600' :
                   stat.color === 'green' ? 'text-green-600' :
                   stat.color === 'yellow' ? 'text-yellow-600' :
@@ -207,77 +207,77 @@ function SuperAdminDashboardContent({ user, toast, greeting, setGreeting }: Supe
               )}
             </div>
             <div className="space-y-2">
-              <h3 className="text-gray-600 text-sm font-semibold uppercase tracking-wide">{stat.title}</h3>
-              <div className="text-4xl font-bold text-gray-900 leading-none">{stat.value}</div>
-              <p className="text-gray-500 text-sm font-medium">{stat.subtitle}</p>
+              <h3 className="text-gray-600 text-xs sm:text-sm font-semibold uppercase tracking-wide">{stat.title}</h3>
+              <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 leading-none">{stat.value}</div>
+              <p className="text-gray-500 text-xs sm:text-sm font-medium">{stat.subtitle}</p>
             </div>
           </div>
         ))}
       </div>
 
       {/* Admin Actions and System Status */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Admin Quick Actions */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">System Administration</h2>
+        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">System Administration</h2>
             <Settings className="w-5 h-5 text-gray-400" />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             <button 
               onClick={() => toast.success('User Added', 'New system user has been successfully created')}
-              className="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-6 text-white hover:from-blue-700 hover:to-blue-800 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+              className="group relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl p-4 sm:p-6 text-white hover:from-blue-700 hover:to-blue-800 transition-all duration-300 hover:scale-105 hover:shadow-lg"
             >
-              <div className="flex flex-col items-center space-y-3">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <UserPlus className="w-6 h-6" />
+              <div className="flex flex-col items-center space-y-2 sm:space-y-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                  <UserPlus className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <span className="font-semibold">Add User</span>
+                <span className="text-sm sm:text-base font-semibold">Add User</span>
               </div>
             </button>
 
             <button 
               onClick={() => toast.info('System Settings', 'Configure global system parameters')}
-              className="group relative overflow-hidden bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl p-6 text-white hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+              className="group relative overflow-hidden bg-gradient-to-br from-indigo-600 to-indigo-700 rounded-xl p-4 sm:p-6 text-white hover:from-indigo-700 hover:to-indigo-800 transition-all duration-300 hover:scale-105 hover:shadow-lg"
             >
-              <div className="flex flex-col items-center space-y-3">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <Settings className="w-6 h-6" />
+              <div className="flex flex-col items-center space-y-2 sm:space-y-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                  <Settings className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <span className="font-semibold">Settings</span>
+                <span className="text-sm sm:text-base font-semibold">Settings</span>
               </div>
             </button>
 
             <button 
               onClick={() => toast.warning('Backup Started', 'System backup process has been initiated')}
-              className="group relative overflow-hidden bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-6 text-white hover:from-purple-700 hover:to-purple-800 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+              className="group relative overflow-hidden bg-gradient-to-br from-purple-600 to-purple-700 rounded-xl p-4 sm:p-6 text-white hover:from-purple-700 hover:to-purple-800 transition-all duration-300 hover:scale-105 hover:shadow-lg"
             >
-              <div className="flex flex-col items-center space-y-3">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <HardDrive className="w-6 h-6" />
+              <div className="flex flex-col items-center space-y-2 sm:space-y-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                  <HardDrive className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <span className="font-semibold">Backup Data</span>
+                <span className="text-sm sm:text-base font-semibold">Backup Data</span>
               </div>
             </button>
 
             <button 
               onClick={() => toast.info('Reports Generated', 'System performance reports are ready')}
-              className="group relative overflow-hidden bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-6 text-white hover:from-green-700 hover:to-green-800 transition-all duration-300 hover:scale-105 hover:shadow-lg"
+              className="group relative overflow-hidden bg-gradient-to-br from-green-600 to-green-700 rounded-xl p-4 sm:p-6 text-white hover:from-green-700 hover:to-green-800 transition-all duration-300 hover:scale-105 hover:shadow-lg"
             >
-              <div className="flex flex-col items-center space-y-3">
-                <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                  <BarChart3 className="w-6 h-6" />
+              <div className="flex flex-col items-center space-y-2 sm:space-y-3">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
+                  <BarChart3 className="w-5 h-5 sm:w-6 sm:h-6" />
                 </div>
-                <span className="font-semibold">View Reports</span>
+                <span className="text-sm sm:text-base font-semibold">View Reports</span>
               </div>
             </button>
           </div>
         </div>
 
         {/* System Health Status */}
-        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900">System Health</h2>
+        <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900">System Health</h2>
             <MonitorSpeaker className="w-5 h-5 text-gray-400" />
           </div>
           <div className="space-y-4">

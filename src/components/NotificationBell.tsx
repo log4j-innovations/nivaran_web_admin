@@ -23,17 +23,31 @@ export default function NotificationBell({ className = '' }: NotificationBellPro
   useEffect(() => {
     if (!user?.id) return;
 
-    // Subscribe to real-time notifications
-    const unsubscribe = NotificationService.getInstance().subscribeToNotifications(
-      user.id,
-      (newNotifications) => {
-        setNotifications(newNotifications);
-        setUnreadCount(newNotifications.filter(n => !n.isRead).length);
+    // Add a small delay to ensure user role is properly established
+    const timer = setTimeout(() => {
+      // Subscribe to real-time notifications with error handling
+      try {
+        const unsubscribe = NotificationService.getInstance().subscribeToNotifications(
+          user.id,
+          (newNotifications) => {
+            setNotifications(newNotifications);
+            setUnreadCount(newNotifications.filter(n => !n.isRead).length);
+          }
+        );
+
+        return () => {
+          unsubscribe();
+        };
+      } catch (error) {
+        console.warn('⚠️ NotificationBell: Failed to subscribe to notifications:', error);
+        // Fallback to empty notifications instead of breaking the UI
+        setNotifications([]);
+        setUnreadCount(0);
       }
-    );
+    }, 1000); // 1 second delay
 
     return () => {
-      unsubscribe();
+      clearTimeout(timer);
     };
   }, [user?.id]);
 

@@ -62,14 +62,36 @@ export const firestoreService = {
     });
   },
   
-  getUser: async (userId: string) => {
-    const userDoc = await getDoc(doc(db, 'users', userId));
-    return userDoc.exists() ? { id: userDoc.id, ...userDoc.data() } : null;
+  getUser: async (userId: string): Promise<{ id: string; [key: string]: unknown } | null> => {
+    try {
+      console.log('🔍 Firebase: Fetching user data for:', userId);
+      
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Firestore timeout after 8 seconds')), 8000);
+      });
+      
+      const fetchPromise = getDoc(doc(db, 'users', userId));
+      const userDoc = await Promise.race([fetchPromise, timeoutPromise]);
+      
+      const userData = userDoc.exists() ? { id: userDoc.id, ...userDoc.data() } : null;
+      console.log('🔍 Firebase: User data result:', userData ? 'Found' : 'Not found');
+      return userData;
+    } catch (error) {
+      console.error('❌ Firebase: Error fetching user data:', error);
+      throw error;
+    }
   },
   
   getUsers: async () => {
-    const snapshot = await getDocs(collection(db, 'users'));
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    try {
+      const snapshot = await getDocs(collection(db, 'users'));
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.warn('⚠️ Firebase: Permission error fetching users:', error);
+      // Return empty array on permission error instead of breaking
+      return [];
+    }
   },
   
   updateUser: async (userId: string, userData: Partial<User>) => {
@@ -119,22 +141,28 @@ export const firestoreService = {
   },
   
   getIssues: async (filters?: Record<string, string>) => {
-    let q = query(collection(db, 'issues'));
-    
-    if (filters?.status) {
-      q = query(q, where('status', '==', filters.status));
+    try {
+      let q = query(collection(db, 'issues'));
+      
+      if (filters?.status) {
+        q = query(q, where('status', '==', filters.status));
+      }
+      if (filters?.priority) {
+        q = query(q, where('priority', '==', filters.priority));
+      }
+      if (filters?.assignedTo) {
+        q = query(q, where('assignedTo', '==', filters.assignedTo));
+      }
+      
+      q = query(q, orderBy('createdAt', 'desc'));
+      
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Array<{ id: string; [key: string]: unknown }>;
+    } catch (error) {
+      console.warn('⚠️ Firebase: Permission error fetching issues:', error);
+      // Return empty array on permission error instead of breaking
+      return [];
     }
-    if (filters?.priority) {
-      q = query(q, where('priority', '==', filters.priority));
-    }
-    if (filters?.assignedTo) {
-      q = query(q, where('assignedTo', '==', filters.assignedTo));
-    }
-    
-    q = query(q, orderBy('createdAt', 'desc'));
-    
-    const snapshot = await getDocs(q);
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as Array<{ id: string; [key: string]: unknown }>;
   },
 
   getIssueById: async (issueId: string) => {
@@ -173,8 +201,14 @@ export const firestoreService = {
   },
   
   getAreas: async () => {
-    const snapshot = await getDocs(collection(db, 'areas'));
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    try {
+      const snapshot = await getDocs(collection(db, 'areas'));
+      return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    } catch (error) {
+      console.warn('⚠️ Firebase: Permission error fetching areas:', error);
+      // Return empty array on permission error instead of breaking
+      return [];
+    }
   },
   
   // Activity operations

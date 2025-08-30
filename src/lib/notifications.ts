@@ -299,17 +299,24 @@ class NotificationService {
       orderBy('createdAt', 'desc')
     );
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const notifications: Notification[] = [];
-      querySnapshot.forEach((doc) => {
-        notifications.push({
-          id: doc.id,
-          ...doc.data()
-        } as Notification);
-      });
+    const unsubscribe = onSnapshot(q, 
+      (querySnapshot) => {
+        const notifications: Notification[] = [];
+        querySnapshot.forEach((doc) => {
+          notifications.push({
+            id: doc.id,
+            ...doc.data()
+          } as Notification);
+        });
 
-      callback(notifications);
-    });
+        callback(notifications);
+      },
+      (error) => {
+        console.warn('⚠️ NotificationsService: Permission error in snapshot listener:', error);
+        // Provide empty notifications on permission error instead of breaking
+        callback([]);
+      }
+    );
 
     this.listeners.set(recipientId, unsubscribe);
     return unsubscribe;

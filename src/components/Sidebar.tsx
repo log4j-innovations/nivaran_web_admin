@@ -14,7 +14,10 @@ import {
   FileText,
   Shield,
   Clock,
-  X
+  TrendingUp,
+  X,
+  PieChart,
+  Map
 } from 'lucide-react';
 
 interface NavItem {
@@ -36,18 +39,18 @@ const navigationSections = {
     { name: 'Reports', href: '/reports', icon: FileText, role: 'super_admin' },
     { name: 'Reports', href: '/reports', icon: FileText, role: 'city_engineer' },
     { name: 'Reports', href: '/reports', icon: FileText, role: 'auditor' },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3, role: 'super_admin' },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3, role: 'city_engineer' },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3, role: 'field_supervisor' },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3, role: 'auditor' },
-    { name: 'Advanced Analytics', href: '/advanced-analytics', icon: BarChart3, role: 'super_admin' },
-    { name: 'Advanced Analytics', href: '/advanced-analytics', icon: BarChart3, role: 'city_engineer' },
-    { name: 'Advanced Analytics', href: '/advanced-analytics', icon: BarChart3, role: 'auditor' },
+    { name: 'Analytics', href: '/analytics', icon: PieChart, role: 'super_admin' },
+    { name: 'Analytics', href: '/analytics', icon: PieChart, role: 'city_engineer' },
+    { name: 'Analytics', href: '/analytics', icon: PieChart, role: 'field_supervisor' },
+    { name: 'Analytics', href: '/analytics', icon: PieChart, role: 'auditor' },
+    { name: 'Advanced Analytics', href: '/advanced-analytics', icon: TrendingUp, role: 'super_admin' },
+    { name: 'Advanced Analytics', href: '/advanced-analytics', icon: TrendingUp, role: 'city_engineer' },
+    { name: 'Advanced Analytics', href: '/advanced-analytics', icon: TrendingUp, role: 'auditor' },
     { name: 'SLA Monitor', href: '/sla-monitor', icon: Clock, role: 'super_admin' },
     { name: 'SLA Monitor', href: '/sla-monitor', icon: Clock, role: 'city_engineer' },
-    { name: 'Map View', href: '/map-view', icon: MapPin, role: 'super_admin' },
-    { name: 'Map View', href: '/map-view', icon: MapPin, role: 'city_engineer' },
-    { name: 'Map View', href: '/map-view', icon: MapPin, role: 'field_supervisor' }
+    { name: 'Map View', href: '/map-view', icon: Map, role: 'super_admin' },
+    { name: 'Map View', href: '/map-view', icon: Map, role: 'city_engineer' },
+    { name: 'Map View', href: '/map-view', icon: Map, role: 'field_supervisor' }
   ],
   settings: [
     { name: 'Settings', href: '/settings', icon: Settings, role: 'super_admin' },
