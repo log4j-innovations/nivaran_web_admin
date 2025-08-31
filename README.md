@@ -50,18 +50,7 @@ npm install
 
 The project is already configured with your Firebase credentials:
 
-```typescript
-// src/lib/firebase.ts
-const firebaseConfig = {
-  apiKey: "AIzaSyAIe8VDPlWv2h1PY9PEpl8uMoTmcDnUuwE",
-  authDomain: "authapp-3bd50.firebaseapp.com",
-  databaseURL: "https://authapp-3bd50-default-rtdb.firebaseio.com",
-  projectId: "authapp-3bd50",
-  storageBucket: "authapp-3bd50.firebasestorage.app",
-  messagingSenderId: "178885454844",
-  appId: "1:178885454844:web:ea2c9caed5d8d0e88d2079"
-};
-```
+
 
 ### 3. Firebase Project Setup
 
