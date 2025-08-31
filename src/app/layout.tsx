@@ -12,10 +12,8 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Municipal Hazard Dashboard',
-  description: 'Admin dashboard for managing crowdsourced road hazard reports',
+  description: 'Role-based dashboard for managing municipal infrastructure issues',
   manifest: '/manifest.json',
-  themeColor: '#1e40af',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -32,6 +30,13 @@ export const metadata: Metadata = {
   }
 };
 
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  themeColor: '#3b82f6'
+};
+
 export default function RootLayout({
   children,
 }: {
@@ -39,25 +44,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning data-scroll-behavior="smooth">
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js')
-                    .then(function(registration) {
-                      console.log('SW registered: ', registration);
-                    })
-                    .catch(function(registrationError) {
-                      console.log('SW registration failed: ', registrationError);
-                    });
-                });
-              }
-            `,
-          }}
-        />
-      </head>
       <body className={`${inter.className} antialiased`}>
         <ToastProvider>
           <AuthProvider>

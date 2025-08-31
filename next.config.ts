@@ -1,13 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Remove static export for development
-  // output: "export",
-  // distDir: "out",
+  // Static export for Firebase hosting
+  output: "export",
+  trailingSlash: true,
+  images: {
+    unoptimized: true
+  },
   
   // Add experimental features for better chunk loading
   experimental: {
     optimizePackageImports: ['lucide-react'],
+  },
+  
+  // Server configuration
+  env: {
+    PORT: process.env.PORT || '3000',
   },
   
   // Improve chunk loading

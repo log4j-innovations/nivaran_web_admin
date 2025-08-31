@@ -1,168 +1,129 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
-import { User } from './types';
-import { firebaseAuth, firestoreService } from './firebase';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { User as FirebaseUser } from 'firebase/auth';
-import { Timestamp } from 'firebase/firestore';
+import { firebaseAuth, firestoreService } from './firebaseServices';
+import { User } from './types';
 
 interface AuthContextType {
   user: User | null;
-  firebaseUser: FirebaseUser | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>) => Promise<void>;
   signOutUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
-
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const unsubscribeRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    console.log('🔐 AuthProvider: Initializing auth state listener');
-    
-    // Set a safety timeout to prevent infinite loading
-    timeoutRef.current = setTimeout(() => {
-      console.warn('⚠️ AuthProvider: Timeout reached, forcing loading to false');
-      setLoading(false);
-    }, 10000); // 10 second timeout
-
-    // Listen for Firebase auth state changes
-    unsubscribeRef.current = firebaseAuth.onAuthStateChanged(async (firebaseUser) => {
-      console.log('🔐 AuthProvider: Firebase auth state changed:', firebaseUser ? `User ${firebaseUser.uid}` : 'No user');
-      setFirebaseUser(firebaseUser);
-      
+    const unsubscribe = firebaseAuth.onAuthStateChanged(async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
         try {
-          console.log('🔐 AuthProvider: Fetching user data from Firestore...');
-          // Get user data from Firestore
+          // Try to get user data from Firestore
           const userData = await firestoreService.getUser(firebaseUser.uid);
           
           if (userData) {
-            console.log('🔐 AuthProvider: User data fetched successfully:', userData.role);
-            // Convert Firestore timestamps to Date objects
-            const user: User = {
-              ...userData,
-              createdAt: (userData as { createdAt?: Timestamp }).createdAt?.toDate() || new Date(),
-              lastLogin: (userData as { lastLogin?: Timestamp }).lastLogin?.toDate() || new Date(),
-            } as User;
-            
-            setUser(user);
-            
-            // Update last login (non-blocking)
-            firestoreService.updateUser(firebaseUser.uid, {
-              lastLogin: new Date()
-            }).catch(error => {
-              console.warn('⚠️ AuthProvider: Failed to update last login:', error);
-            });
+            // Check if user is pending and redirect accordingly
+            if (userData.role === 'pending') {
+              // Pending users should not have access to dashboards
+              setUser(userData);
+            } else {
+              setUser(userData);
+            }
           } else {
-            console.warn('⚠️ AuthProvider: User exists in Firebase Auth but not in Firestore');
-            // Create a default user with basic role if Firestore data is missing
+            // If user doesn't exist in Firestore, create a default user
             const defaultUser: User = {
               id: firebaseUser.uid,
               email: firebaseUser.email || '',
               name: firebaseUser.displayName || 'User',
-              role: 'citizen', // Safe default role
+              role: 'pending', // Safe default role - pending approval
               createdAt: new Date(),
               lastLogin: new Date(),
-              isActive: true
+              isActive: false,
+              status: 'inactive'
             };
-            setUser(defaultUser);
             
-            // Try to create user in Firestore (non-blocking)
-            firestoreService.createUser(firebaseUser.uid, {
+            // Save to Firestore
+            await firestoreService.createUser(firebaseUser.uid, {
               email: defaultUser.email,
               name: defaultUser.name,
               role: defaultUser.role,
-              isActive: defaultUser.isActive
-            }).catch(error => {
-              console.warn('⚠️ AuthProvider: Failed to create user in Firestore:', error);
+              isActive: defaultUser.isActive,
+              status: defaultUser.status
             });
+            
+            setUser(defaultUser);
           }
         } catch (error) {
-          console.error('❌ AuthProvider: Error fetching user data:', error);
-          // Create a fallback user to prevent infinite loading
+          console.error('Error fetching user data:', error);
+          
+          // Fallback user creation
           const fallbackUser: User = {
             id: firebaseUser.uid,
             email: firebaseUser.email || '',
             name: firebaseUser.displayName || 'User',
-            role: 'citizen', // Safe default role
+            role: 'pending', // Safe default role - pending approval
             createdAt: new Date(),
             lastLogin: new Date(),
-            isActive: true
+            isActive: false,
+            status: 'inactive'
           };
+          
           setUser(fallbackUser);
         }
       } else {
-        console.log('🔐 AuthProvider: No Firebase user, setting user to null');
         setUser(null);
       }
       
-      // Clear timeout and set loading to false
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-        timeoutRef.current = null;
-      }
       setLoading(false);
-      console.log('🔐 AuthProvider: Loading complete, user:', user ? user.role : 'null');
     });
 
-    // Cleanup function
-    return () => {
-      console.log('🔐 AuthProvider: Cleaning up auth listener');
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      if (unsubscribeRef.current) {
-        unsubscribeRef.current();
-      }
-    };
+    return () => unsubscribe();
   }, []);
+
+  // Removed automatic routing logic to prevent infinite loops
+  // Individual pages will handle their own routing logic
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('🔐 AuthProvider: Attempting sign in for:', email);
       await firebaseAuth.signIn(email, password);
-      // User data will be fetched in the auth state listener
-    } catch (error: unknown) {
-      console.error('❌ AuthProvider: Sign in error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
-      throw new Error(errorMessage);
+      // User will be set by the auth state listener
+    } catch (error) {
+      console.error('Sign in error:', error);
+      throw error;
+    }
+  };
+
+  const signUp = async (email: string, password: string, userData: Omit<User, 'id' | 'createdAt' | 'lastLogin'>) => {
+    try {
+      await firebaseAuth.signUp(email, password, userData);
+      // User will be set by the auth state listener
+    } catch (error) {
+      console.error('Sign up error:', error);
+      throw error;
     }
   };
 
   const signOutUser = async () => {
     try {
-      console.log('🔐 AuthProvider: Signing out user');
       await firebaseAuth.signOut();
       setUser(null);
-      setFirebaseUser(null);
-    } catch (error: unknown) {
-      console.error('❌ AuthProvider: Sign out error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to sign out';
-      throw new Error(errorMessage);
+    } catch (error) {
+      console.error('Sign out error:', error);
+      throw error;
     }
   };
 
-  const value: AuthContextType = {
+  const value = {
     user,
-    firebaseUser,
     loading,
     signIn,
-    signOutUser,
+    signUp,
+    signOutUser
   };
 
   return (
@@ -170,4 +131,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       {children}
     </AuthContext.Provider>
   );
-};
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

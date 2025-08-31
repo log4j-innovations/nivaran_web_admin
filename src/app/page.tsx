@@ -1,78 +1,69 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/lib/authContext';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { LoadingSpinner } from '@/components/LoadingSpinner';
+import { useAuth } from '@/lib/authContext';
+import { Shield, Users, Eye, Wrench } from 'lucide-react';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [redirecting, setRedirecting] = useState(false);
-  const [redirectTimeout, setRedirectTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    console.log('🏠 HomePage: Auth state changed', { loading, user: user ? user.role : null });
-    
     if (!loading) {
-      if (user) {
-        console.log('🏠 HomePage: User authenticated, redirecting to dashboard');
-        setRedirecting(true);
-        router.push('/dashboard');
+      if (user && user.isActive) {
+        // Redirect based on role
+        switch (user.role) {
+          case 'SuperAdmin':
+            router.push('/admin');
+            break;
+          case 'Department Head':
+            router.push('/departmenthead');
+            break;
+          case 'Supervisor':
+            router.push('/supervisor');
+            break;
+          case 'Auditor':
+            router.push('/auditor');
+            break;
+          case 'pending':
+            router.push('/pending-approval');
+            break;
+          default:
+            router.push('/login');
+        }
       } else {
-        console.log('🏠 HomePage: No user, redirecting to login');
-        setRedirecting(true);
+        // User not logged in or not active, redirect to login
         router.push('/login');
       }
     }
   }, [user, loading, router]);
 
-  // Set a safety timeout to prevent infinite loading
-  useEffect(() => {
-    if (loading) {
-      const timeout = setTimeout(() => {
-        console.warn('⚠️ HomePage: Loading timeout reached, forcing redirect to login');
-        setRedirecting(true);
-        router.push('/login');
-      }, 15000); // 15 second timeout
-
-      setRedirectTimeout(timeout);
-
-      return () => {
-        if (redirectTimeout) {
-          clearTimeout(redirectTimeout);
-        }
-      };
-    }
-  }, [loading, router]);
-
-  // Cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (redirectTimeout) {
-        clearTimeout(redirectTimeout);
-      }
-    };
-  }, [redirectTimeout]);
-
-  return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="text-center">
-        <div className="bg-white p-8 rounded-lg shadow-lg border border-gray-200">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Municipal Dashboard</h1>
-          <div className="flex items-center justify-center space-x-2">
-            <LoadingSpinner size="lg" />
-            <span className="text-gray-600">
-              {redirecting ? 'Redirecting...' : 'Loading...'}
-            </span>
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative mb-6">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-blue-200 border-t-blue-600 mx-auto"></div>
           </div>
-          <p className="mt-4 text-sm text-gray-500">
-            {redirecting 
-              ? 'Taking you to the right place' 
-              : 'Please wait while we check your authentication status'
-            }
-          </p>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Welcome to Municipal Dashboard</h2>
+          <p className="text-gray-600">Checking your authentication status...</p>
         </div>
+      </div>
+    );
+  }
+
+  // Show a brief loading state while redirecting
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center">
+      <div className="text-center">
+        <div className="relative mb-6">
+          <div className="h-16 w-16 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto">
+            <Shield className="h-8 w-8 text-white" />
+          </div>
+        </div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Redirecting...</h2>
+        <p className="text-gray-600">Taking you to your dashboard</p>
       </div>
     </div>
   );

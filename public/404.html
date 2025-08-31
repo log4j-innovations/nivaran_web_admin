@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Municipal Dashboard</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 90%;
+        }
+        .loading {
+            color: white;
+            background: transparent;
+            box-shadow: none;
+        }
+        h1 {
+            color: #374151;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        p {
+            color: #6B7280;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        .btn {
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            border-radius: 0.5rem;
+            display: inline-block;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container loading" id="loading">
+        <div class="spinner"></div>
+        <h1>Loading Application...</h1>
+        <p>Please wait while we redirect you to the dashboard.</p>
+    </div>
+
+    <div class="container" id="error" style="display: none;">
+        <h1>404 - Page Not Found</h1>
+        <p>The page you're looking for doesn't exist or has been moved.</p>
+        <a href="/" class="btn">Go to Home</a>
+    </div>
+
+    <script>
+        // Single Page App routing for Firebase hosting
+        const path = window.location.pathname;
+        
+        // Valid routes for the application
+        const validRoutes = [
+            '/',
+            '/login',
+            '/login/',
+            '/signup',
+            '/signup/',
+            '/pending-approval',
+            '/pending-approval/',
+            '/admin',
+            '/admin/',
+            '/admin/users',
+            '/admin/users/',
+            '/admin/issues',
+            '/admin/issues/',
+            '/admin/reports',
+            '/admin/reports/',
+            '/departmenthead',
+            '/departmenthead/',
+            '/departmenthead/areas',
+            '/departmenthead/areas/',
+            '/departmenthead/issues',
+            '/departmenthead/issues/',
+            '/departmenthead/reports',
+            '/departmenthead/reports/',
+            '/supervisor',
+            '/supervisor/',
+            '/supervisor/tasks',
+            '/supervisor/tasks/',
+            '/supervisor/issues',
+            '/supervisor/issues/',
+            '/supervisor/reports',
+            '/supervisor/reports/',
+            '/auditor',
+            '/auditor/',
+            '/auditor/issues',
+            '/auditor/issues/',
+            '/auditor/reports',
+            '/auditor/reports/'
+        ];
+
+        // Check if this is a static asset or valid route
+        const isStaticAsset = path.includes('.') || path.startsWith('/_next/') || path.startsWith('/icons/');
+        const isValidRoute = validRoutes.includes(path) || isStaticAsset;
+
+        if (isValidRoute) {
+            // Valid route - redirect to main app
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        } else {
+            // Invalid route - show 404
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+        }
+
+        // Fallback: if loading takes too long, redirect anyway
+        setTimeout(() => {
+            if (document.getElementById('loading').style.display !== 'none') {
+                window.location.href = '/';
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
